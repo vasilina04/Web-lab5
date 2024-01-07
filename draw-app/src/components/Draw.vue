@@ -1,26 +1,28 @@
 <template>
   <div>
-    <button @click="showRules" v-if="!gameStarted">Показать правила</button>
-  <div v-if="!gameStarted">
-    <img alt="logo" src="../assets/img.png">
-
-    <div v-if="rulesVisible" class="popup">
+    <button @click="openFullscreenPopup" v-if="!gameStarted && !fullscreenPopupVisible">Правила игры</button>
+    <div v-if="fullscreenPopupVisible" class="fullscreen-popup">
       <h2>Название игры</h2>
       <p>Тут будут правила вашей игры...</p>
+      <button @click="closeFullscreenPopup">Закрыть</button>
     </div>
+  </div>
+  <div v-if="!gameStarted && !fullscreenPopupVisible">
+    <img alt="logo" src="../assets/img.png">
     <button @click="startGame" v-if="!gameStarted">Начать игру</button>
   </div>
     <div v-if="gameStarted">
       <div>
+        <p>Оставшееся время: {{ countdownTime }}</p>
         <input type="color" v-model="lineColor" />
         <input type="range" min="1" max="20" v-model="lineWidth" />
         <button @click="clearCanvas">Clear</button>
+        <button @click="endGame" v-if="gameStarted">Выход</button>
       </div>
       <canvas ref="canvas" :width="1200" :height="1200" @mousedown="startDrawing" @mousemove="draw" @mouseup="endDrawing" @touchstart="startDrawing" @touchmove="draw" @touchend="endDrawing" />
       <div class="canvas-container">
       </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -35,17 +37,36 @@ export default {
       isDrawing: false,
       context: null,
       lineColor: '#000000', // Цвет по умолчанию
-      lineWidth: 5 // Толщина линии по умолчанию
+      lineWidth: 5, // Толщина линии по умолчанию
+      fullscreenPopupVisible: false,
+      countdownTime: 20,
+      timer: null
     };
   },
   methods: {
-    showRules() {
-      this.rulesVisible = true;
+     showRules() {
+    this.rulesVisible = true;
+  },
+    openFullscreenPopup() {
+      this.fullscreenPopupVisible = true;
+      document.documentElement.style.overflow = 'hidden'; // Чтобы предотвратить прокрутку фона
+    },
+    closeFullscreenPopup() {
+      this.fullscreenPopupVisible = false;
+      document.documentElement.style.overflow = ''; // Восстановление прокрутки фона
     },
     startGame() {
       this.rulesVisible = false;
       this.gameStarted = true;
-      this.startTimer();
+      if (this.timer) {
+        clearInterval(this.timer); // Остановка предыдущего таймера, если есть
+      }
+      this.countdownTime = 20; // Сброс времени
+      this.timer = setInterval(this.countdown, 1000);
+    },
+    endGame() {
+      this.gameStarted = false;
+      clearInterval(this.timer);
     },
      startDrawing(event) {
       this.isDrawing = true;
@@ -75,15 +96,13 @@ export default {
       const context = canvas.getContext('2d');
       context.clearRect(0, 0, canvas.width, canvas.height);
     },
-    startTimer() {
-      this.timerId = setInterval(() => {
-        this.timeLimit--;
-        if (this.timeLimit === 0) {
-          clearInterval(this.timerId);
-          // Код для окончания игры после таймера
-        }
-      }, 1000);
-    },
+    countdown() {
+      if (this.countdownTime > 0) {
+        this.countdownTime--;
+      } else {
+        this.endGame();
+      }
+    }
   }
 };
 </script>
