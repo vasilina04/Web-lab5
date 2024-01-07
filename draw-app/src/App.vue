@@ -6,7 +6,7 @@
 
 <script>
 
-import DrawingCanvas from './components/DrawCanva.vue'
+import DrawingCanvas from './components/Draw.vue'
 
 export default {
   name: 'App',
