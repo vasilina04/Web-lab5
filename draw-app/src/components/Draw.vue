@@ -2,15 +2,24 @@
   <div>
     <button @click="openFullscreenPopup" v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">Правила игры</button>
     <div v-if="fullscreenPopupVisible" class="fullscreen-popup">
-      <h2>Название игры</h2>
-      <p>Тут будут правила вашей игры...</p>
+      <h2>Что это за игра?</h2>
+      <p>Игра Quick, Draw! использует технологии машинного обучения.
+        Вы рисуете предмет, а нейронная сеть пытается угадать, что это такое.
+        Не все ее попытки удачны. Чем чаще вы играете, тем больше знает сеть.
+        Пока она умеет распознавать всего несколько сотен предметов, но со временем их список расширится.
+        Эта игра – пример того, что машинное обучение может быть занимательным.
+        Чтобы узнать больше, посмотрите видео ниже и
+      </p>
+      <div>
+      <iframe width="560" height="315" src="https://www.youtube.com/embed/X8v1GWzZYJ4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
       <button @click="closeFullscreenPopup">Закрыть</button>
     </div>
   </div>
   <div v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">
     <img alt="logo" src="../assets/img.png">
   </div>
-    <div v-if="gameStarted && !fullscreenPopupVisible">
+    <div v-if="gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">
       <div>
         <p>Оставшееся время: {{ countdownTime }}</p>
          <p>Нарисуйте предмет {{ selectedDrawingSubject }}</p>
@@ -18,16 +27,16 @@
         <input type="range" min="1" max="20" v-model="lineWidth" />
         <button @click="clearCanvas">Clear</button>
         <button @click="endGame" v-if="gameStarted">Выход</button>
-        <button @click="openPromptForDrawingSubject">Следующий рисунок</button>
+        <button @click="openNextLevelPrompt">Следующий рисунок</button>
       </div>
-      <canvas ref="canvas" :width="1200" :height="1200" @mousedown="startDrawing" @mousemove="draw" @mouseup="endDrawing" @touchstart="startDrawing" @touchmove="draw" @touchend="endDrawing" />
+      <canvas ref="canvas" :width="800" :height="800" @mousedown="startDrawing" @mousemove="draw" @mouseup="endDrawing" @touchstart="startDrawing" @touchmove="draw" @touchend="endDrawing" />
     </div>
-
   <div>
     <div v-if="!gameStarted && !drawingSubjectPromptVisible && !fullscreenPopupVisible">
       <button @click="openPromptForDrawingSubject">Начать игру</button>
     </div>
     <div v-if="drawingSubjectPromptVisible && !gameStarted && !fullscreenPopupVisible" class="prompt-dialog">
+      <button @click="closeDrawingScreen">Закрыть</button>
       <p>Нарисуйте предмет {{ selectedDrawingSubject }} за 20 секунд</p>
       <button @click="startGame">Хорошо</button>
     </div>
@@ -70,6 +79,7 @@ export default {
     startGame() {
       this.rulesVisible = false;
       this.gameStarted = true;
+      this.drawingSubjectPromptVisible = false;
       if (this.timer) {
         clearInterval(this.timer); // Остановка предыдущего таймера, если есть
       }
@@ -132,6 +142,11 @@ export default {
       const randomIndex = Math.floor(Math.random() * this.drawingSubjects.length);
       const randomSubject = this.drawingSubjects[randomIndex];
       this.showDrawingPrompt(randomSubject);
+      this.drawingSubjectPromptVisible = true;
+    },
+    closeDrawingScreen() {
+      this.drawingSubjectPromptVisible = false;
+      document.documentElement.style.overflow = ''; // Восстановление прокрутки фона
     },
   }
 };
