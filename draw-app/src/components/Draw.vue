@@ -1,23 +1,21 @@
 <template>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" type="text/css">
   <div>
-    <button @click="openFullscreenPopup" v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">Правила игры</button>
-    <div v-if="fullscreenPopupVisible" class="fullscreen-popup">
+    <button class = "button-about" @click="openFullscreenPopup" v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">Правила</button>
+    <transition name="slide">
+    <div v-if="fullscreenPopupVisible" class="fullscreen-popup covercard">
       <h2>Что это за игра?</h2>
-      <p>Игра Quick, Draw! использует технологии машинного обучения.
+      <p class="fullscreen-text">Игра Draw it использует технологии машинного обучения.
         Вы рисуете предмет, а нейронная сеть пытается угадать, что это такое.
-        Не все ее попытки удачны. Чем чаще вы играете, тем больше знает сеть.
-        Пока она умеет распознавать всего несколько сотен предметов, но со временем их список расширится.
-        Эта игра – пример того, что машинное обучение может быть занимательным.
-        Чтобы узнать больше, посмотрите видео ниже и
+        Пока она умеет распознавать лишь немного предметов, но со временем их список расширится.
+        Чтобы узнать больше, посмотрите видео ниже.
       </p>
       <div>
-      <iframe width="560" height="315" src="https://www.youtube.com/embed/X8v1GWzZYJ4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <iframe width="1050" height="595" src="https://www.youtube.com/embed/X8v1GWzZYJ4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
-      <button @click="closeFullscreenPopup">Закрыть</button>
+      <button class="close" @click="closeFullscreenPopup">Закрыть</button>
     </div>
-  </div>
-  <div v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">
-    <img alt="logo" src="../assets/img.png">
+  </transition>
   </div>
     <div v-if="gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">
       <div>
@@ -25,22 +23,29 @@
          <p>Нарисуйте предмет {{ selectedDrawingSubject }}</p>
         <input type="color" v-model="lineColor" />
         <input type="range" min="1" max="20" v-model="lineWidth" />
-        <button @click="clearCanvas">Clear</button>
-        <button @click="endGame" v-if="gameStarted">Выход</button>
-        <button @click="openNextLevelPrompt">Следующий рисунок</button>
+        <button class="b-clear c-btn" @click="clearCanvas">Clear</button>
+        <button class="b-exit c-btn" @click="endGame" v-if="gameStarted">Выход</button>
+        <button class="b-next c-btn" @click="openNextLevelPrompt">Следующий рисунок</button>
       </div>
       <canvas ref="canvas" :width="800" :height="800" @mousedown="startDrawing" @mousemove="draw" @mouseup="endDrawing" @touchstart="startDrawing" @touchmove="draw" @touchend="endDrawing" />
     </div>
-  <div>
-    <div v-if="!gameStarted && !drawingSubjectPromptVisible && !fullscreenPopupVisible">
-      <button @click="openPromptForDrawingSubject">Начать игру</button>
+    <div class="banner" v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">
     </div>
+    <div class="main-content" v-if="!gameStarted && !drawingSubjectPromptVisible && !fullscreenPopupVisible">
+      <p>Может ли нейросеть научиться распознавать рисунки?</p>
+      <button class="p-button" @click="openPromptForDrawingSubject">Начать игру</button>
+    </div>
+    <transition name="slide">
     <div v-if="drawingSubjectPromptVisible && !gameStarted && !fullscreenPopupVisible" class="prompt-dialog">
-      <button @click="closeDrawingScreen">Закрыть</button>
-      <p>Нарисуйте предмет {{ selectedDrawingSubject }} за 20 секунд</p>
-      <button @click="startGame">Хорошо</button>
+      <button  class="exit" @click="closeDrawingScreen">Закрыть</button>
+      <div class="task-content">
+        <p>Нарисуйте {{ selectedDrawingSubject }} за 20 секунд</p>
+        <button @click="startGame">Хорошо</button>
+      </div>
     </div>
-  </div>
+    </transition>
+
+
 </template>
 
 <script>
@@ -139,6 +144,7 @@ export default {
       this.drawingSubjectPromptVisible = true;
     },
     openNextLevelPrompt() {
+      this.endGame();
       const randomIndex = Math.floor(Math.random() * this.drawingSubjects.length);
       const randomSubject = this.drawingSubjects[randomIndex];
       this.showDrawingPrompt(randomSubject);
@@ -178,6 +184,118 @@ export default {
 }
 canvas {
   border: 1px solid #000;
+}
+
+.banner {
+  width: 50%;
+  height: 50%;
+  left: 25%;
+  top: 15vh;
+  position: absolute;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-image: url("../assets/banner.png");
+}
+
+.main-content {
+  position: absolute;
+  top: 70%;
+  left: 35%;
+  color: black;
+}
+
+button {
+  display: inline-block;
+  padding: 15px 25px;
+  font-size: 24px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 9px #999;
+}
+
+.p-button {
+  color: #fff;
+  background-color: #FCD12A;
+}
+
+.button-about {
+  position: absolute;
+  top: 1%;
+  left: 1%;
+  color: #fff;
+  background-color: #FADA5E;
+}
+
+button:active {
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+.fullscreen-popup {
+  position: absolute;
+  z-index: 100;
+  height: 100vh;
+  width: 100vw;
+  top: 0;
+  left: 0;
+  background-color: #ffffff;
+}
+
+.fullscreen-text {
+  margin-left: 25%;
+  margin-right: 25%;
+  //color: gray;
+}
+
+body {
+  font-family: "Avenir", Helvetica, Arial, sans-serif;
+  font-size: 24px;
+}
+
+.exit {
+  position: absolute;
+  top: 1%;
+  left: 92%;
+}
+
+.slide-leave-active {
+  transition: all 0.6s cubic-bezier(1.0, 1.0, 1.0, 2.0);
+}
+.slide-leave-to
+{
+  transform: translateY(-1000px);
+}
+
+.close {
+  position: absolute;
+  left: 1%;
+  top: 1%;
+}
+
+.task-content {
+  position: absolute;
+  top: 40vh;
+  left: 40vw;
+}
+
+.prompt-dialog {
+  position: absolute;
+  z-index: 100;
+  height: 100vh;
+  width: 100vw;
+  top: 0;
+  left: 0;
+  background-color: #ffffff;
+}
+
+.c-btn {
+  position: relative;
+  top: -1.2vh;
 }
 
 </style>
