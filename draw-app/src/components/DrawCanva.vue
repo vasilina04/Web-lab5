@@ -16,9 +16,9 @@ export default {
     return {
       isDrawing: false,
       context: null,
-      lineColor: '#000000', // Цвет по умолчанию
-      lineWidth: 5 // Толщина линии по умолчанию
-    }
+      lineColor: '#000000',
+      lineWidth: 5,
+    };
   },
   methods: {
     startDrawing(event) {
@@ -43,14 +43,25 @@ export default {
     },
     endDrawing() {
       this.isDrawing = false;
+      this.sendImageToBackend();
     },
     clearCanvas() {
       const canvas = this.$refs.canvas;
       const context = canvas.getContext('2d');
       context.clearRect(0, 0, canvas.width, canvas.height);
-    }
-  }
-}
+    },
+    async sendImageToBackend() {
+      const imageData = this.$refs.canvas.toDataURL('image/png');
+
+      try {
+        const response = await this.$axios.post('http://localhost:8000/inbetweener/api/analyze/', { image: imageData });
+        console.log(response.data); // Обработка ответа от бэкенда
+      } catch (error) {
+        console.error('Ошибка при отправке изображения на бэкенд', error);
+      }
+    },
+  },
+};
 </script>
 
 

@@ -44,6 +44,7 @@
 </template>
 
 <script>
+import NeuralNetwork from '@/NeuralNetwork';
 export default {
   name: 'DrawingCanvas',
   data() {
@@ -113,11 +114,22 @@ export default {
     },
     endDrawing() {
       this.isDrawing = false;
+      this.sendImageToBackend();
     },
     clearCanvas() {
       const canvas = this.$refs.canvas;
       const context = canvas.getContext('2d');
       context.clearRect(0, 0, canvas.width, canvas.height);
+    },
+    async sendImageToBackend() {
+      const imageData = this.$refs.canvas.toDataURL('image/png');
+
+      try {
+        // Передаем изображение на бэкенд, используя модуль NeuralNetwork
+        await NeuralNetwork.sendImageToBackend(imageData);
+      } catch (error) {
+        console.error('Ошибка при отправке изображения на бэкенд', error);
+      }
     },
     countdown() {
       if (this.countdownTime > 0) {
