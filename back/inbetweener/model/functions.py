@@ -25,6 +25,9 @@ def init_model():
     return model
 
 
+model = init_model()
+
+
 def preds2catids(predictions):
     return pd.DataFrame(np.argsort(-predictions, axis=1)[:, :3], columns=['a', 'b', 'c'])
 
@@ -32,12 +35,15 @@ def preds2catids(predictions):
 # предсказывание результата
 # Первый параметр это модель, второй - это путь до изображения которое надо предсказать
 def predict_image(file_path):
-    model = init_model()
-
     img = Image.open(file_path)
-    img = img.resize((64, 64))
+
     if img.mode == 'RGBA':
         img = img.convert('RGB')
+
+    white_back = Image.new('RGBA', img.size, (255, 255, 255))
+    white_back.paste(img)
+
+    img = white_back.resize((64, 64))
     img = ImageOps.invert(img)
     img = ImageOps.grayscale(img)
 
@@ -79,6 +85,6 @@ def predict_image_from_base64(base64_string):
     # Удаление временного файла (если нужно)
     os.remove(temp_image_path)
 
-    print(result)
+    # print(result)
 
     return result
