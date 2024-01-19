@@ -1,7 +1,6 @@
 <template>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet" type="text/css">
   <div>
-    <button class = "button-about" @click="openFullscreenPopup" v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">Правила</button>
+    <button @click="openFullscreenPopup" v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">Правила игры</button>
     <transition name="slide">
     <div v-if="fullscreenPopupVisible" class="fullscreen-popup covercard">
       <h2>Что это за игра?</h2>
@@ -17,18 +16,25 @@
     </div>
   </transition>
   </div>
-    <div v-if="gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">
-      <div>
-        <p>Оставшееся время: {{ countdownTime }}</p>
-         <p>Нарисуйте предмет {{ selectedDrawingSubject }}</p>
-        <input type="color" v-model="lineColor" />
-        <input type="range" min="1" max="20" v-model="lineWidth" />
-        <button class="b-clear c-btn" @click="clearCanvas">Clear</button>
-        <button class="b-exit c-btn" @click="endGame" v-if="gameStarted">Выход</button>
-        <button class="b-next c-btn" @click="openNextLevelPrompt">Следующий рисунок</button>
+    <div v-if="gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible" class="canvas-page">
+      <div class="canvas-content">
+        <div class="timer">
+          <p>Оставшееся время: {{ countdownTime }}</p>
+        </div>
+        <div class="task">
+          <p>Нарисуйте этот предмет: {{ selectedDrawingSubject }}</p>
+        </div>
+        <div class="canvas-btns">
+          <input type="color" v-model="lineColor" />
+          <input type="range" min="1" max="20" v-model="lineWidth" />
+          <button class="b-clear c-btn" @click="clearCanvas">Clear</button>
+          <button class="b-exit c-btn" @click="endGame" v-if="gameStarted">Выход</button>
+          <button class="b-next c-btn" @click="openNextLevelPrompt">Следующий рисунок</button>
+        </div>
       </div>
-      <canvas ref="canvas" :width="800" :height="800" @mousedown="startDrawing" @mousemove="draw" @mouseup="endDrawing" @touchstart="startDrawing" @touchmove="draw" @touchend="endDrawing" />
+      <canvas ref="canvas" id="drawingCanvas" resize="true" :width="1000" :height="800" @mousedown="startDrawing" @mousemove="draw" @mouseup="endDrawing" @touchstart="startDrawing" @touchmove="draw" @touchend="endDrawing" />
     </div>
+  <div>
     <div class="banner" v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">
     </div>
     <div class="main-content" v-if="!gameStarted && !drawingSubjectPromptVisible && !fullscreenPopupVisible">
@@ -39,16 +45,16 @@
     <div v-if="drawingSubjectPromptVisible && !gameStarted && !fullscreenPopupVisible" class="prompt-dialog">
       <button  class="exit" @click="closeDrawingScreen">Закрыть</button>
       <div class="task-content">
-        <p>Нарисуйте {{ selectedDrawingSubject }} за 20 секунд</p>
+        <p>Нарисуйте предмет <b>{{ selectedDrawingSubject }}</b> за 20 секунд</p>
         <button @click="startGame">Хорошо</button>
       </div>
     </div>
     </transition>
-
-
+  </div>
 </template>
 
 <script>
+import NeuralNetwork from '@/NeuralNetwork';
 export default {
   name: 'DrawingCanvas',
   data() {
@@ -118,11 +124,22 @@ export default {
     },
     endDrawing() {
       this.isDrawing = false;
+      this.sendImageToBackend();
     },
     clearCanvas() {
       const canvas = this.$refs.canvas;
       const context = canvas.getContext('2d');
       context.clearRect(0, 0, canvas.width, canvas.height);
+    },
+    async sendImageToBackend() {
+      const imageData = this.$refs.canvas.toDataURL('image/png');
+
+      try {
+        // Передаем изображение на бэкенд, используя модуль NeuralNetwork
+        await NeuralNetwork.sendImageToBackend(imageData);
+      } catch (error) {
+        console.error('Ошибка при отправке изображения на бэкенд', error);
+      }
     },
     countdown() {
       if (this.countdownTime > 0) {
@@ -183,7 +200,13 @@ export default {
   position: relative;
 }
 canvas {
-  border: 1px solid #000;
+  position: relative;
+  user-select: none;
+  -webkit-user-drag: none;
+  background-color: white;
+  overflow-clip-margin: content-box;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  aspect-ratio: auto 1024 / 1366;
 }
 
 .banner {
@@ -254,7 +277,11 @@ button:active {
 
 body {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
-  font-size: 24px;
+  font-size: 24px
+}
+
+html {
+  background-color: #d2b48c;
 }
 
 .exit {
@@ -290,12 +317,29 @@ body {
   width: 100vw;
   top: 0;
   left: 0;
-  background-color: #ffffff;
+  background-color: #ff7bac;
 }
 
-.c-btn {
-  position: relative;
-  top: -1.2vh;
+.canvas-btns{
+  position: absolute;
+  top: 1%;
+  right: 1%;
 }
 
+.timer {
+  position: absolute;
+  top: 1%;
+  left: 40%;
+}
+
+.task {
+  position: absolute;
+  top: 1%;
+  left: 1%;
+}
+
+.canvas-content {
+  margin-top: 0;
+  height: 40px;
+}
 </style>
