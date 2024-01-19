@@ -276,6 +276,7 @@ button:active {
 }
 
 body {
+  margin: 0;
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   font-size: 24px
 }
@@ -341,5 +342,6 @@ html {
 .canvas-content {
   margin-top: 0;
   height: 40px;
+  justify-content: space-around;
 }
 </style>
