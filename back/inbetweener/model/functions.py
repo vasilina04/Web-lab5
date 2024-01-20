@@ -40,8 +40,8 @@ def predict_image(file_path):
     if img.mode == 'RGBA':
         img = img.convert('RGB')
 
-    white_back = Image.new('RGBA', img.size, (255, 255, 255))
-    white_back.paste(img)
+    white_back = Image.new('RGB', img.size, 'white')
+    white_back.paste(img, (0, 0))
 
     img = white_back.resize((64, 64))
     img = ImageOps.invert(img)
@@ -85,6 +85,6 @@ def predict_image_from_base64(base64_string):
     # Удаление временного файла (если нужно)
     os.remove(temp_image_path)
 
-    # print(result)
+    print(result)
 
     return result
