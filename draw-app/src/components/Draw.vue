@@ -65,6 +65,10 @@
     </div>
     </transition>
   <!--/Страница с заданием -->
+
+  <div class="output-message" v-if="backendResponseVisible">
+    <p>{{ backendResponse }}</p>
+  </div>
 </template>
 
 <script>
@@ -86,7 +90,9 @@ export default {
       timer: null,
       drawingSubjectPromptVisible: false,
       selectedDrawingSubject: '',
-      drawingSubjects: ['Дом', 'Дерево', 'Солнце', "Ёж", "Медведь", "Облако"]
+      drawingSubjects: ['Дом', 'Дерево', 'Солнце', "Ёж", "Медведь", "Облако"],
+      backendResponseVisible: false,
+      backendResponse: ''
     };
   },
   methods: {
@@ -149,8 +155,11 @@ export default {
       const imageData = this.$refs.canvas.toDataURL('image/png');
 
       try {
-        // Передаем изображение на бэкенд, используя модуль NeuralNetwork
-        await NeuralNetwork.sendImageToBackend(imageData);
+        const response = await NeuralNetwork.sendImageToBackend(imageData);
+        
+        this.backendResponseVisible = true;
+        this.backendResponse = response;
+
       } catch (error) {
         console.error('Ошибка при отправке изображения на бэкенд', error);
       }
@@ -412,6 +421,15 @@ html {
   background-color: #FADA5E;
 }
 
-
+.output-message {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+}
 
 </style>

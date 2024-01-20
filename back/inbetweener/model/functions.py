@@ -68,21 +68,16 @@ def predict_image(file_path):
 
 def predict_image_from_base64(base64_string):
     base64_string = base64_string.split(',')[1]
-    # Преобразование Base64 строки в изображение
     image_data = base64.b64decode(base64_string)
     image = Image.open(BytesIO(image_data))
 
-    # Получение пути к текущей папке скрипта
     script_directory = os.path.dirname(os.path.realpath(__file__))
 
-    # Сохранение изображения в той же папке, где находится скрипт
     temp_image_path = os.path.join(script_directory, "temp_image.png")
     image.save(temp_image_path)
 
-    # Предсказание результата
     result = predict_image(temp_image_path)
 
-    # Удаление временного файла (если нужно)
     os.remove(temp_image_path)
 
     print(result)
