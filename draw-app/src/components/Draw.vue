@@ -200,7 +200,6 @@ export default {
 <style>
 
 canvas {
-  border: solid;
   position: relative;
   user-select: none;
   -webkit-user-drag: none;
@@ -282,7 +281,6 @@ button:active {
   transform: translateY(4px);
 }
 
-
 .fullscreen-popup {
   background-color: #FCD12A;
 }
@@ -319,7 +317,6 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
 }
 
 body {
