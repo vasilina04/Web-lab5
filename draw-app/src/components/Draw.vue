@@ -1,74 +1,78 @@
 <template>
   <div class="header">
-      <div class="container">
-        <div class="header-line">
-          <div>
-            <button class="close" @click="closeFullscreenPopup" v-if="fullscreenPopupVisible">Закрыть</button>
-            <button class="close" @click="closeDrawingScreen" v-if="drawingSubjectPromptVisible && !gameStarted && !fullscreenPopupVisible">Закрыть</button>
-            <button class="rule-btn" @click="openFullscreenPopup" v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">Правила игры</button>
+    <div class="container">
+      <div class="header-line">
+        <div>
+          <button class="close" @click="closeFullscreenPopup" v-if="fullscreenPopupVisible">Закрыть</button>
+          <button class="close" @click="closeDrawingScreen"
+                  v-if="drawingSubjectPromptVisible && !gameStarted && !fullscreenPopupVisible">Закрыть
+          </button>
+          <button class="rule-btn" @click="openFullscreenPopup"
+                  v-if="!gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible">Правила игры
+          </button>
+          <div class="canvas-header" v-if="gameStarted">
+            <div class="task">
+              <p>Нарисуйте этот предмет: {{ selectedDrawingSubject }}</p>
+            </div>
+            <div class="timer">
+              <p>{{ countdownTime }}</p>
+            </div>
+            <div class="canvas-btns">
+              <button class="b-clear c-btn" @click="clearCanvas">Clear</button>
+              <button class="b-exit c-btn" @click="endGame" v-if="gameStarted">Выход</button>
+              <button class="b-next c-btn" @click="openNextLevelPrompt">Следующий рисунок</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </div>
   <!-- Страница с правилами -->
   <transition name="slide">
-  <div v-if="fullscreenPopupVisible" class="fullscreen-popup covercard">
-    <div class="rule-content">
-      <h2>Что это за игра?</h2>
-      <p class="fullscreen-text">Игра Draw it использует технологии машинного обучения.
-        Вы рисуете предмет, а нейронная сеть пытается угадать, что это такое.
-        Пока она умеет распознавать лишь немного предметов, но со временем их список расширится.
-        Чтобы узнать больше, посмотрите видео ниже.
-      </p>
-      <div class="about-video">
-        <iframe src="https://www.youtube.com/embed/X8v1GWzZYJ4" frameborder="0" allowfullscreen></iframe>
-      </div>
-    </div>
-  </div>
-  </transition>
-  <!--/Страница с правилами -->
-  <div v-if="gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible" class="canvas-page">
-    <div class="canvas-content">
-      <div class="timer">
-        <p>Оставшееся время: {{ countdownTime }}</p>
-      </div>
-      <div class="task">
-        <p>Нарисуйте этот предмет: {{ selectedDrawingSubject }}</p>
-      </div>
-      <div class="canvas-btns">
-        <input type="color" v-model="lineColor" />
-        <input type="range" min="1" max="20" v-model="lineWidth" />
-        <button class="b-clear c-btn" @click="clearCanvas">Clear</button>
-        <button class="b-exit c-btn" @click="endGame" v-if="gameStarted">Выход</button>
-        <button class="b-next c-btn" @click="openNextLevelPrompt">Следующий рисунок</button>
-      </div>
-    </div>
-    <canvas ref="canvas" id="drawingCanvas" resize="true" :width="1000" :height="800" @mousedown="startDrawing" @mousemove="draw" @mouseup="endDrawing" @touchstart="startDrawing" @touchmove="draw" @touchend="endDrawing" />
-  </div>
-    <!-- Главная страница -->
-    <div class="main-content" v-if="!gameStarted && !drawingSubjectPromptVisible && !fullscreenPopupVisible">
-        <div class="banner"></div>
-        <p>Может ли нейросеть научиться распознавать рисунки?</p>
-        <button class="p-button" @click="openPromptForDrawingSubject">Начать игру</button>
-    </div>
-    <!--/Главная страница -->
-
-    <transition name="slide">
-    <div v-if="drawingSubjectPromptVisible && !gameStarted && !fullscreenPopupVisible" class="prompt-dialog">
-      <!-- Страница с заданием -->
-      <div class="task-content">
-        <div class="card-content">
-          <p>Нарисуйте предмет <b>{{ selectedDrawingSubject }}</b> за 20 секунд</p>
-          <button @click="startGame">Хорошо</button>
+    <div v-if="fullscreenPopupVisible" class="fullscreen-popup covercard">
+      <div class="rule-content">
+        <h2>Что это за игра?</h2>
+        <p class="fullscreen-text">Игра Draw it использует технологии машинного обучения.
+          Вы рисуете предмет, а нейронная сеть пытается угадать, что это такое.
+          Пока она умеет распознавать лишь немного предметов, но со временем их список расширится.
+          Чтобы узнать больше, посмотрите видео ниже.
+        </p>
+        <div class="about-video">
+          <iframe src="https://www.youtube.com/embed/X8v1GWzZYJ4" frameborder="0" allowfullscreen></iframe>
         </div>
       </div>
     </div>
-    </transition>
+  </transition>
+  <!--/Страница с правилами -->
+  <div v-if="gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible" class="canvas-container">
+    <canvas ref="canvas" id="drawingCanvas" resize="true" :width="1000" :height="800" @mousedown="startDrawing"
+            @mousemove="draw" @mouseup="endDrawing" @touchstart="startDrawing" @touchmove="draw"
+            @touchend="endDrawing"/>
+  </div>
+  <!-- Главная страница -->
+  <div class="main-content" v-if="!gameStarted && !drawingSubjectPromptVisible && !fullscreenPopupVisible">
+    <div class="banner"></div>
+    <p>Может ли нейросеть научиться распознавать рисунки?</p>
+    <button class="p-button" @click="openPromptForDrawingSubject">Начать игру</button>
+  </div>
+  <!--/Главная страница -->
+
+  <div v-if="drawingSubjectPromptVisible && !gameStarted && !fullscreenPopupVisible" class="prompt-dialog">
+    <!-- Страница с заданием -->
+    <div class="card-content">
+      <p>Нарисуйте предмет <b>{{ selectedDrawingSubject }}</b> за 20 секунд</p>
+      <button @click="startGame">Хорошо</button>
+    </div>
+  </div>
   <!--/Страница с заданием -->
+  <div class="output-message" v-if="backendResponseVisible">
+    <p>{{ backendResponse }}</p>
+  </div>
 </template>
 
 <script>
 import NeuralNetwork from '@/NeuralNetwork';
+
 export default {
   name: 'DrawingCanvas',
   data() {
@@ -86,13 +90,15 @@ export default {
       timer: null,
       drawingSubjectPromptVisible: false,
       selectedDrawingSubject: '',
-      drawingSubjects: ['Дом', 'Дерево', 'Солнце', "Ёж", "Медведь", "Облако"]
+      drawingSubjects: ['Дом', 'Дерево', 'Солнце', "Ёж", "Медведь", "Облако"],
+      backendResponseVisible: false,
+      backendResponse: ''
     };
   },
   methods: {
-     showRules() {
-    this.rulesVisible = true;
-  },
+    showRules() {
+      this.rulesVisible = true;
+    },
     openFullscreenPopup() {
       this.fullscreenPopupVisible = true;
       document.documentElement.style.overflow = 'hidden'; // Чтобы предотвратить прокрутку фона
@@ -116,7 +122,7 @@ export default {
       this.drawingSubjectPromptVisible = false;
       clearInterval(this.timer);
     },
-     startDrawing(event) {
+    startDrawing(event) {
       this.isDrawing = true;
       const canvas = this.$refs.canvas;
       this.context = canvas.getContext('2d');
@@ -149,8 +155,10 @@ export default {
       const imageData = this.$refs.canvas.toDataURL('image/png');
 
       try {
-        // Передаем изображение на бэкенд, используя модуль NeuralNetwork
-        await NeuralNetwork.sendImageToBackend(imageData);
+        const response = await NeuralNetwork.sendImageToBackend(imageData);
+
+        this.backendResponseVisible = true;
+        this.backendResponse = response;
       } catch (error) {
         console.error('Ошибка при отправке изображения на бэкенд', error);
       }
@@ -166,9 +174,9 @@ export default {
       }
     },
     showDrawingPrompt(subject) {
-  this.drawingSubjectPromptVisible = true;
-  this.selectedDrawingSubject = subject;
-  },
+      this.drawingSubjectPromptVisible = true;
+      this.selectedDrawingSubject = subject;
+    },
     openPromptForDrawingSubject() {
       const randomIndex = Math.floor(Math.random() * this.drawingSubjects.length);
       this.selectedDrawingSubject = this.drawingSubjects[randomIndex];
@@ -190,31 +198,9 @@ export default {
 </script>
 
 <style>
-@media screen and (max-width: 768px) {
-  .popup {
-    /* стили для маленьких экранов */
-  }
 
-  .show-rules-btn {
-    /* стили для кнопки "Показать правила" на маленьких экранах */
-  }
-}
-/*
-.popup {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #fff;
-  padding: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-.canvas-container {
-  margin-top: 20px;
-  position: relative;
-}
 canvas {
+  border: solid;
   position: relative;
   user-select: none;
   -webkit-user-drag: none;
@@ -223,7 +209,6 @@ canvas {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   aspect-ratio: auto 1024 / 1366;
 }
-*/
 
 .banner {
   height: 40vh;
@@ -257,7 +242,7 @@ canvas {
   margin: 0 auto;
 }
 
-.about-video{
+.about-video {
   position: relative;
   width: 100%;
   height: 0;
@@ -297,104 +282,66 @@ button:active {
   transform: translateY(4px);
 }
 
-/*
+
 .fullscreen-popup {
-  position: absolute;
-  z-index: 100;
-  height: 100vh;
-  width: 100vw;
-  top: 0;
-  left: 0;
-  background-color: #ffffff;
+  background-color: #FCD12A;
 }
 
-.fullscreen-text {
-  margin-left: 25%;
-  margin-right: 25%;
-  //color: gray;
-}
-*/
 body {
   font-family: "Avenir", Helvetica, Arial, sans-serif;
   font-size: 24px
-}
-/*
-html {
-  background-color: #d2b48c;
-}
-
-.exit {
-  position: absolute;
-  top: 1%;
-  left: 92%;
 }
 
 .slide-leave-active {
   transition: all 0.6s cubic-bezier(1.0, 1.0, 1.0, 2.0);
 }
-.slide-leave-to
-{
+
+.slide-leave-to {
   transform: translateY(-1000px);
 }
 
 .close {
-  position: absolute;
-  left: 1%;
-  top: 1%;
+  color: #fff;
+  background-color: #FADA5E;
 }
 
-*/
-
-.task-content {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  max-width: 910px;
-  margin: 0 auto;
+.c-btn {
+  color: #fff;
+  background-color: #FADA5E;
+  margin-right: 10px;
 }
 
 .prompt-dialog {
-  position: absolute;
-  text-align: center;
-  z-index: 100;
+  position: relative;
   height: 100vh;
   width: 100vw;
-  top: 0;
-  left: 0;
-  /*background-color: #ff7bac; */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
 }
 
+body {
+  margin: 0;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
 
-/*
-.canvas-btns{
+.card-content {
   position: absolute;
-  top: 1%;
-  right: 1%;
+  padding-bottom: 20vh;
 }
 
 .timer {
-  position: absolute;
-  top: 1%;
-  left: 40%;
+  display: inline-block;
 }
-
-.task {
-  position: absolute;
-  top: 1%;
-  left: 1%;
-}
-
-.canvas-content {
-  margin-top: 0;
-  height: 40px;
-}
-*/
 
 .header {
-  padding-top: 0;
+  position: relative;
+  background-color: #FCD12A;
+  width: 100%;
+  padding: 10px 14px;
 }
 
 .container {
@@ -402,9 +349,11 @@ html {
 }
 
 .header-line {
-  padding-top: 10px;
+  position: relative;
+  padding-bottom: 10px;
   display: flex;
   align-items: center;
+  text-align: center;
 }
 
 .rule-btn {
@@ -412,6 +361,22 @@ html {
   background-color: #FADA5E;
 }
 
+.canvas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 100vw;
+  left: 0;
+}
 
-
+.output-message {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 5px;
+  text-align: center;
+}
 </style>
