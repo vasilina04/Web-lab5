@@ -7,6 +7,8 @@ import numpy as np
 import base64
 from io import BytesIO
 import os
+import random
+import string
 
 from .config import *
 
@@ -37,13 +39,21 @@ def preds2catids(predictions):
 def predict_image(file_path):
     img = Image.open(file_path)
 
+    save_directory = "modified_images"
+    os.makedirs(save_directory, exist_ok=True)
+    random_filename = ''.join(random.choices(string.ascii_lowercase + string.digits, k=8))
+    original_save_path = f"modified_images/{random_filename}_original.png"
+    img.save(original_save_path)
+
     if img.mode == 'RGBA':
-        img = img.convert('RGB')
+        new_img = Image.new('RGB', img.size, (255, 255, 255))
+        new_img.paste(img, mask=img.split()[3])
+        img = new_img
 
-    white_back = Image.new('RGBA', img.size, (255, 255, 255))
-    white_back.paste(img)
+    converted_save_path = f"modified_images/{random_filename}_converted.png"
+    img.save(converted_save_path)
 
-    img = white_back.resize((64, 64))
+    img = img.resize((64, 64))
     img = ImageOps.invert(img)
     img = ImageOps.grayscale(img)
 
@@ -68,23 +78,18 @@ def predict_image(file_path):
 
 def predict_image_from_base64(base64_string):
     base64_string = base64_string.split(',')[1]
-    # Преобразование Base64 строки в изображение
     image_data = base64.b64decode(base64_string)
     image = Image.open(BytesIO(image_data))
 
-    # Получение пути к текущей папке скрипта
     script_directory = os.path.dirname(os.path.realpath(__file__))
 
-    # Сохранение изображения в той же папке, где находится скрипт
     temp_image_path = os.path.join(script_directory, "temp_image.png")
     image.save(temp_image_path)
 
-    # Предсказание результата
     result = predict_image(temp_image_path)
 
-    # Удаление временного файла (если нужно)
     os.remove(temp_image_path)
 
-    # print(result)
+    print(result)
 
     return result
