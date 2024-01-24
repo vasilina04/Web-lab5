@@ -12,7 +12,7 @@
           </button>
           <div class="canvas-header" v-if="gameStarted">
             <div class="task">
-              <p>Нарисуйте этот предмет: {{ selectedDrawingSubject }}</p>
+              <p>Нарисуйте этот предмет: {{ selectedDrawingSubject.rus }}</p>
             </div>
             <div class="timer">
               <p>{{ countdownTime }}</p>
@@ -23,12 +23,6 @@
               <button class="b-next c-btn" @click="openNextLevelPrompt">Следующий рисунок</button>
             </div>
           </div>
-            <div class="output-message" v-if="backendResponseVisible">
-    <p>{{ backendResponse }}</p>
-    <div v-if="backendResponse === selectedDrawingSubject">
-      <button class="b-next c-btn" @click="openNextLevelPrompt">Следующий рисунок</button>
-    </div>
-  </div>
         </div>
       </div>
     </div>
@@ -51,9 +45,12 @@
   </transition>
   <!--/Страница с правилами -->
   <div v-if="gameStarted && !fullscreenPopupVisible && !drawingSubjectPromptVisible" class="canvas-container">
-    <canvas ref="canvas" id="drawingCanvas" resize="true" :width="1000" :height="800" @mousedown="startDrawing"
+    <canvas ref="canvas" id="drawingCanvas" resize="true" :width="800" :height="800" @mousedown="startDrawing"
             @mousemove="draw" @mouseup="endDrawing" @touchstart="startDrawing" @touchmove="draw"
             @touchend="endDrawing"/>
+  </div>
+  <div id="AI_guess" class="output-message" v-if="backendResponseVisible && !drawingSubjectPromptVisible && gameStarted && !fullscreenPopupVisible">
+    <p>{{ backendResponse.rus }}</p>
   </div>
   <!-- Главная страница -->
   <div class="main-content" v-if="!gameStarted && !drawingSubjectPromptVisible && !fullscreenPopupVisible">
@@ -66,20 +63,23 @@
   <div v-if="drawingSubjectPromptVisible && !gameStarted && !fullscreenPopupVisible" class="prompt-dialog">
     <!-- Страница с заданием -->
     <div class="card-content">
-      <p>Нарисуйте предмет <b>{{ selectedDrawingSubject }}</b> за 20 секунд</p>
+      <p>Нарисуйте предмет <b>{{ selectedDrawingSubject.rus }}</b> за 20 секунд</p>
       <button @click="startGame">Хорошо</button>
     </div>
   </div>
   <!--/Страница с заданием -->
-  <div class="output-message" v-if="backendResponseVisible">
-  <p>{{ backendResponse }}</p>
-</div>
 </template>
 
 <script>
 
 import NeuralNetwork from '@/NeuralNetwork';
 
+class word {
+  constructor(eng, rus) {
+    this.eng = eng;
+    this.rus = rus;
+  }
+}
 export default {
   name: 'DrawingCanvas',
   data() {
@@ -96,343 +96,26 @@ export default {
       countdownTime: 20,
       timer: null,
       drawingSubjectPromptVisible: false,
-      selectedDrawingSubject: '',
-      drawingSubjects: ['airplane',
-            'alarm clock',
-            'ambulance',
-            'angel',
-            'ant',
-            'apple',
-            'arm',
-            'axe',
-            'backpack',
-            'banana',
-            'baseball bat',
-            'basket',
-            'basketball',
-            'bat',
-            'bathtub',
-            'beard',
-            'bed',
-            'bee',
-            'belt',
-            'bench',
-            'bicycle',
-            'binoculars',
-            'bird',
-            'birthday cake',
-            'book',
-            'boomerang',
-            'bracelet',
-            'brain',
-            'bread',
-            'bridge',
-            'broccoli',
-            'broom',
-            'bucket',
-            'bulldozer',
-            'bus',
-            'bush',
-            'butterfly',
-            'cactus',
-            'cake',
-            'calculator',
-            'calendar',
-            'camel',
-            'camera',
-            'camouflage',
-            'campfire',
-            'candle',
-            'cannon',
-            'canoe',
-            'car',
-            'carrot',
-            'castle',
-            'cat',
-            'ceiling fan',
-            'cell phone',
-            'cello',
-            'chair',
-            'chandelier',
-            'church',
-            'circle',
-            'clarinet',
-            'clock',
-            'cloud',
-            'coffee cup',
-            'compass',
-            'computer',
-            'cookie',
-            'cooler',
-            'couch',
-            'cow',
-            'crab',
-            'crayon',
-            'crocodile',
-            'crown',
-            'cruise ship',
-            'cup',
-            'diamond',
-            'dishwasher',
-            'diving board',
-            'dog',
-            'dolphin',
-            'donut',
-            'door',
-            'dragon',
-            'dresser',
-            'drill',
-            'drums',
-            'duck',
-            'dumbbell',
-            'ear',
-            'elbow',
-            'elephant',
-            'envelope',
-            'eraser',
-            'eye',
-            'eyeglasses',
-            'face',
-            'fan',
-            'feather',
-            'fence',
-            'finger',
-            'fire hydrant',
-            'fireplace',
-            'firetruck',
-            'fish',
-            'flamingo',
-            'flashlight',
-            'flip flops',
-            'floor lamp',
-            'flower',
-            'flying saucer',
-            'foot',
-            'fork',
-            'frog',
-            'frying pan',
-            'garden',
-            'garden hose',
-            'giraffe',
-            'goatee',
-            'golf club',
-            'grapes',
-            'grass',
-            'guitar',
-            'hamburger',
-            'hammer',
-            'hand',
-            'harp',
-            'hat',
-            'headphones',
-            'hedgehog',
-            'helicopter',
-            'helmet',
-            'hexagon',
-            'hockey puck',
-            'hockey stick',
-            'horse',
-            'hospital',
-            'hot air balloon',
-            'hot dog',
-            'hot tub',
-            'hourglass',
-            'house',
-            'house plant',
-            'hurricane',
-            'ice cream',
-            'jacket',
-            'jail',
-            'kangaroo',
-            'key',
-            'keyboard',
-            'knee',
-            'ladder',
-            'lantern',
-            'laptop',
-            'leaf',
-            'leg',
-            'light bulb',
-            'lighthouse',
-            'lightning',
-            'line',
-            'lion',
-            'lipstick',
-            'lobster',
-            'lollipop',
-            'mailbox',
-            'map',
-            'marker',
-            'matches',
-            'megaphone',
-            'mermaid',
-            'microphone',
-            'microwave',
-            'monkey',
-            'moon',
-            'mosquito',
-            'motorbike',
-            'mountain',
-            'mouse',
-            'moustache',
-            'mouth',
-            'mug',
-            'mushroom',
-            'nail',
-            'necklace',
-            'nose',
-            'ocean',
-            'octagon',
-            'octopus',
-            'onion',
-            'oven',
-            'owl',
-            'paint can',
-            'paintbrush',
-            'palm tree',
-            'panda',
-            'pants',
-            'paper clip',
-            'parachute',
-            'parrot',
-            'passport',
-            'peanut',
-            'pear',
-            'peas',
-            'pencil',
-            'penguin',
-            'piano',
-            'pickup truck',
-            'picture frame',
-            'pig',
-            'pillow',
-            'pineapple',
-            'pizza',
-            'pliers',
-            'police car',
-            'pond',
-            'pool',
-            'popsicle',
-            'postcard',
-            'potato',
-            'power outlet',
-            'purse',
-            'rabbit',
-            'raccoon',
-            'radio',
-            'rain',
-            'rainbow',
-            'rake',
-            'remote control',
-            'rhinoceros',
-            'river',
-            'roller coaster',
-            'rollerskates',
-            'sailboat',
-            'sandwich',
-            'saw',
-            'saxophone',
-            'school bus',
-            'scissors',
-            'scorpion',
-            'screwdriver',
-            'sea turtle',
-            'see saw',
-            'shark',
-            'sheep',
-            'shoe',
-            'shorts',
-            'shovel',
-            'sink',
-            'skateboard',
-            'skull',
-            'skyscraper',
-            'sleeping bag',
-            'smiley face',
-            'snail',
-            'snake',
-            'snorkel',
-            'snowflake',
-            'snowman',
-            'soccer ball',
-            'sock',
-            'speedboat',
-            'spider',
-            'spoon',
-            'spreadsheet',
-            'square',
-            'squiggle',
-            'squirrel',
-            'stairs',
-            'star',
-            'steak',
-            'stereo',
-            'stethoscope',
-            'stitches',
-            'stop sign',
-            'stove',
-            'strawberry',
-            'streetlight',
-            'string bean',
-            'submarine',
-            'suitcase',
-            'sun',
-            'swan',
-            'sweater',
-            'swing set',
-            'sword',
-            't-shirt',
-            'table',
-            'teapot',
-            'teddy-bear',
-            'telephone',
-            'television',
-            'tennis racquet',
-            'tent',
-            'The Eiffel Tower',
-            'The Great Wall of China',
-            'The Mona Lisa',
-            'tiger',
-            'toaster',
-            'toe',
-            'toilet',
-            'tooth',
-            'toothbrush',
-            'toothpaste',
-            'tornado',
-            'tractor',
-            'traffic light',
-            'train',
-            'tree',
-            'triangle',
-            'trombone',
-            'truck',
-            'trumpet',
-            'umbrella',
-            'underwear',
-            'van',
-            'vase',
-            'violin',
-            'washing machine',
-            'watermelon',
-            'waterslide',
-            'whale',
-            'wheel',
-            'windmill',
-            'wine bottle',
-            'wine glass',
-            'wristwatch',
-            'yoga',
-            'zebra',
-            'zigzag'],
+      selectedDrawingSubject: new word('', ''),
+      drawingSubjects: [new word("chair", "стул"),
+                        new word("sun", "солнце"),
+                        new word("snail", "улитка"),
+                        new word("grass", "трава"),
+                        new word("smiley_face", "смайлик"),
+                        new word('square', 'квадрат'),
+                        new word('stairs', 'лестница'),
+                        new word('pig', 'свинья'),
+                        new word('cow', 'корова'),
+                        new word('snowman', 'снеговик'),
+                        new word('snowflake', 'снежинка'),
+                        new word('submarine', 'подводная лодка'),
+                        new word('cloud', 'облако'),
+      ],
       backendResponseVisible: false,
-      backendResponse: ''
+      backendResponse: new word('', '')
     };
   },
   methods: {
-    showRules() {
-      this.rulesVisible = true;
-    },
     openFullscreenPopup() {
       this.fullscreenPopupVisible = true;
       document.documentElement.style.overflow = 'hidden'; // Чтобы предотвратить прокрутку фона
@@ -452,6 +135,7 @@ export default {
       this.timer = setInterval(this.countdown, 1000);
     },
     endGame() {
+      this.backendResponse = new word('', '');
       this.gameStarted = false;
       this.drawingSubjectPromptVisible = false;
       clearInterval(this.timer);
@@ -492,7 +176,11 @@ export default {
         const response = await NeuralNetwork.sendImageToBackend(imageData);
 
         this.backendResponseVisible = true;
-        this.backendResponse = response;
+        this.backendResponse.eng = response;
+        this.backendResponse.rus = response;
+        for (let i = 0; i < this.drawingSubjects.length; i++) {
+          if (this.backendResponse.eng===this.drawingSubjects[i].eng) { this.backendResponse.rus=this.drawingSubjects[i].rus; }
+        }
 
 
       } catch (error) {
@@ -501,6 +189,12 @@ export default {
     },
     countdown() {
       if (this.countdownTime > 0) {
+        if (this.backendResponse.eng === this.selectedDrawingSubject.eng) {
+          document.getElementById("AI_guess").style.backgroundColor = 'green';
+          this.backendResponse.eng = '';
+          this.backendResponse.rus = '';
+          this.openNextLevelPrompt();
+        }
         this.countdownTime--;
       } else {
         this.endGame();
@@ -518,19 +212,12 @@ export default {
       this.selectedDrawingSubject = this.drawingSubjects[randomIndex];
       this.drawingSubjectPromptVisible = true;
     },
-    startNewLevel() {
-      if (this.backendResponse === this.selectedDrawingSubject) {
-        this.openNextLevelPrompt(); // вызов функции для открытия нового уровня
-      }
-    },
-
     openNextLevelPrompt() {
       this.endGame();
       const randomIndex = Math.floor(Math.random() * this.drawingSubjects.length);
       const randomSubject = this.drawingSubjects[randomIndex];
       this.showDrawingPrompt(randomSubject);
       this.drawingSubjectPromptVisible = true;
-      this.backendResponse = ''
     },
     closeDrawingScreen() {
       this.drawingSubjectPromptVisible = false;
@@ -653,6 +340,7 @@ body {
 }
 
 .prompt-dialog {
+  z-index: 999;
   position: relative;
   height: 100vh;
   width: 100vw;
